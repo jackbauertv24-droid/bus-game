@@ -545,7 +545,8 @@
             busMesh.quaternion.copy(busBody.quaternion);
 
             wheels.forEach(wheel => {
-                wheel.body.position.copy(wheel.mesh.getWorldPosition(new THREE.Vector3()));
+                // Update mesh position from physics body, not the other way around
+                wheel.mesh.position.copy(wheel.body.position);
             });
         }
 
