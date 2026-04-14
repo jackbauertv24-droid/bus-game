@@ -91,9 +91,9 @@
 
         // Bus parameters
         const maxSpeed = 80;
-        const acceleration = 50;
-        const brakeForce = 100;
-        const friction = 0.9;
+        const acceleration = 80;
+        const brakeForce = 150;
+        const friction = 0.92;
         const steeringSpeed = 0.05;
         const maxSteering = 0.5;
         let currentSpeed = 0;
@@ -297,7 +297,6 @@
             const busWidth = 2.5;
             const busHeight = 3.2;
             const busLength = 10;
-            const wheelRadius = 0.6;
 
             // Create main bus group
             busMesh = new THREE.Group();
@@ -468,6 +467,7 @@
             scene.add(busMesh);
 
             // Physics body for bus - still use box for simplicity
+            const wheelRadius = 0.6;
             const busShape = new CANNON.Box(
                 new CANNON.Vec3(busWidth / 2, busHeight / 2, busLength / 2)
             );
@@ -599,7 +599,7 @@
             busBody.velocity.z *= friction;
 
             // Apply downforce to keep bus on ground
-            busBody.applyForce(new CANNON.Vec3(0, -10000, 0), busBody.position);
+            busBody.applyForce(new CANNON.Vec3(0, -20000, 0), busBody.position);
 
             // Reset with R key
             if (keys['KeyR']) {
@@ -658,10 +658,8 @@
             busMesh.position.copy(busBody.position);
             busMesh.quaternion.copy(busBody.quaternion);
 
-            wheels.forEach(wheel => {
-                // Update mesh position from physics body, not the other way around
-                wheel.mesh.position.copy(wheel.body.position);
-            });
+            // Wheel meshes are already children of busMesh group, so no need to update position
+            // because they are already correctly positioned locally - physics handles constraints automatically
         }
 
         // Handle window resize
