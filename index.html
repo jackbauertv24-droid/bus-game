@@ -291,75 +291,189 @@
             }
         }
 
-        // Create the bus with physics
+        // Create the bus with physics - more realistic model
         function createBus() {
             // Bus dimensions
             const busWidth = 2.5;
-            const busHeight = 3;
-            const busLength = 8;
+            const busHeight = 3.2;
+            const busLength = 10;
+            const wheelRadius = 0.6;
 
-            // Three.js mesh - bus body
-            const bodyGeometry = new THREE.BoxGeometry(busWidth, busHeight, busLength);
+            // Create main bus group
+            busMesh = new THREE.Group();
+
+            // Main body - lower chassis
+            const chassisHeight = busHeight * 0.8;
+            const chassisGeometry = new THREE.BoxGeometry(busWidth, chassisHeight, busLength);
             const bodyMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0xff0000,
-                roughness: 0.5 
+                color: 0xdd2222,
+                roughness: 0.4,
+                metalness: 0.3
             });
-            busMesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
-            busMesh.position.y = busHeight / 2 + 0.5;
-            busMesh.castShadow = true;
-            scene.add(busMesh);
+            const chassis = new THREE.Mesh(chassisGeometry, bodyMaterial);
+            chassis.position.y = chassisHeight / 2 + wheelRadius;
+            chassis.castShadow = true;
+            busMesh.add(chassis);
+
+            // Upper cabin - slightly narrower for rounded look
+            const cabinWidth = busWidth * 0.95;
+            const cabinHeight = busHeight * 0.6;
+            const cabinGeometry = new THREE.BoxGeometry(cabinWidth, cabinHeight, busLength * 0.8);
+            const cabinMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xff3333,
+                roughness: 0.3,
+                metalness: 0.2
+            });
+            const cabin = new THREE.Mesh(cabinGeometry, cabinMaterial);
+            cabin.position.set(0, chassisHeight + cabinHeight / 2 + wheelRadius, 0.5);
+            cabin.castShadow = true;
+            busMesh.add(cabin);
+
+            // Front bumper
+            const bumperGeometry = new THREE.BoxGeometry(busWidth, 0.3, 0.3);
+            const bumperMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x222222,
+                roughness: 0.8 
+            });
+            const frontBumper = new THREE.Mesh(bumperGeometry, bumperMaterial);
+            frontBumper.position.set(0, 0.5 + wheelRadius, -busLength / 2 - 0.1);
+            frontBumper.castShadow = true;
+            busMesh.add(frontBumper);
+
+            // Rear bumper
+            const rearBumper = new THREE.Mesh(bumperGeometry, bumperMaterial);
+            rearBumper.position.set(0, 0.5 + wheelRadius, busLength / 2 + 0.1);
+            rearBumper.castShadow = true;
+            busMesh.add(rearBumper);
+
+            // Headlights
+            const headlightGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.2, 16);
+            const headlightMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xffffcc,
+                emissive: 0xffffaa,
+                roughness: 0.1 
+            });
+
+            const leftHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+            leftHeadlight.rotation.z = Math.PI / 2;
+            leftHeadlight.position.set(-0.8, 1.0 + wheelRadius, -busLength / 2 - 0.25);
+            busMesh.add(leftHeadlight);
+
+            const rightHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+            rightHeadlight.rotation.z = Math.PI / 2;
+            rightHeadlight.position.set(0.8, 1.0 + wheelRadius, -busLength / 2 - 0.25);
+            busMesh.add(rightHeadlight);
+
+            // Taillights
+            const taillightMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xff2222,
+                emissive: 0xaa0000,
+                roughness: 0.2 
+            });
+            const leftTaillight = new THREE.Mesh(headlightGeometry, taillightMaterial);
+            leftTaillight.rotation.z = Math.PI / 2;
+            leftTaillight.position.set(-0.8, 1.0 + wheelRadius, busLength / 2 + 0.25);
+            busMesh.add(leftTaillight);
+
+            const rightTaillight = new THREE.Mesh(headlightGeometry, taillightMaterial);
+            rightTaillight.rotation.z = Math.PI / 2;
+            rightTaillight.position.set(0.8, 1.0 + wheelRadius, busLength / 2 + 0.25);
+            busMesh.add(rightTaillight);
+
+            // Roof sign/advertisement area
+            const signGeometry = new THREE.BoxGeometry(cabinWidth * 0.9, 0.1, busLength * 0.3);
+            const signMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xeeeeee,
+                roughness: 0.9 
+            });
+            const roofSign = new THREE.Mesh(signGeometry, signMaterial);
+            roofSign.position.set(0, chassisHeight + cabinHeight + 0.05 + wheelRadius, -1);
+            roofSign.castShadow = true;
+            busMesh.add(roofSign);
 
             // Add windows
             const windowMaterial = new THREE.MeshStandardMaterial({ 
                 color: 0x88ccff,
                 transparent: true,
-                opacity: 0.7 
+                opacity: 0.7,
+                roughness: 0.1 
             });
 
-            // Side windows
-            for (let i = -2; i <= 2; i++) {
+            // Side windows - more numerous for realistic city bus
+            for (let i = -3; i <= 3; i++) {
+                if (i === 0) continue; // Skip middle for spacing
                 const leftWindow = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.1, 1.2, 1.2),
+                    new THREE.BoxGeometry(0.1, 1.4, 1.3),
                     windowMaterial
                 );
                 leftWindow.position.set(
-                    -busWidth / 2 - 0.05,
-                    busHeight / 2 + 0.3,
-                    i * 1.5
+                    -cabinWidth / 2 - 0.05,
+                    chassisHeight + cabinHeight / 2 + wheelRadius,
+                    i * 1.3
                 );
                 busMesh.add(leftWindow);
 
                 const rightWindow = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.1, 1.2, 1.2),
+                    new THREE.BoxGeometry(0.1, 1.4, 1.3),
                     windowMaterial
                 );
                 rightWindow.position.set(
-                    busWidth / 2 + 0.05,
-                    busHeight / 2 + 0.3,
-                    i * 1.5
+                    cabinWidth / 2 + 0.05,
+                    chassisHeight + cabinHeight / 2 + wheelRadius,
+                    i * 1.3
                 );
                 busMesh.add(rightWindow);
             }
 
-            // Front windshield
+            // Front windshield - larger curved shape approximation
             const frontWindshield = new THREE.Mesh(
-                new THREE.BoxGeometry(busWidth - 0.4, 1.5, 0.1),
+                new THREE.BoxGeometry(cabinWidth - 0.2, 1.8, 0.1),
                 windowMaterial
             );
             frontWindshield.position.set(
                 0,
-                busHeight / 2 + 0.2,
-                -busLength / 2 - 0.05
+                chassisHeight + 1.0 + wheelRadius,
+                -busLength * 0.4 - 0.05
             );
-            busMesh.add(frontWindshield);
+            cabin.add(frontWindshield);
 
-            // Physics body for bus
+            // Rear window
+            const rearWindshield = new THREE.Mesh(
+                new THREE.BoxGeometry(cabinWidth - 0.2, 1.2, 0.1),
+                windowMaterial
+            );
+            rearWindshield.position.set(
+                0,
+                chassisHeight + 1.2 + wheelRadius,
+                busLength * 0.4 + 0.05
+            );
+            cabin.add(rearWindshield);
+
+            // Door in the front right
+            const doorGeometry = new THREE.BoxGeometry(0.1, 2, 2);
+            const doorMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xcc2222,
+                roughness: 0.4 
+            });
+            const door = new THREE.Mesh(doorGeometry, doorMaterial);
+            door.position.set(
+                cabinWidth / 2 + 0.03,
+                1 + wheelRadius,
+                -1
+            );
+            cabin.add(door);
+
+            // Position the entire bus
+            busMesh.position.y = 0;
+            scene.add(busMesh);
+
+            // Physics body for bus - still use box for simplicity
             const busShape = new CANNON.Box(
                 new CANNON.Vec3(busWidth / 2, busHeight / 2, busLength / 2)
             );
             busBody = new CANNON.Body({
-                mass: 1000,
-                position: new CANNON.Vec3(0, busHeight / 2 + 0.5, 30),
+                mass: 1500, // Heavier for more realistic physics
+                position: new CANNON.Vec3(0, busHeight / 2 + wheelRadius, 30),
                 shape: busShape
             });
             world.addBody(busBody);
@@ -373,10 +487,10 @@
             const wheelRadius = 0.6;
             const wheelWidth = 0.5;
             const wheelPositions = [
-                { x: -1.2, z:  2.5 }, // front left
-                { x:  1.2, z:  2.5 }, // front right
-                { x: -1.2, z: -2.5 }, // rear left
-                { x:  1.2, z: -2.5 }  // rear right
+                { x: -1.2, z:  4 }, // front left
+                { x:  1.2, z:  4 }, // front right
+                { x: -1.2, z: -4 }, // rear left
+                { x:  1.2, z: -4 }  // rear right
             ];
 
             const wheelMaterial = new THREE.MeshStandardMaterial({ 
