@@ -467,15 +467,16 @@
 
             // Calculate current speed in local coordinates
             const forward = new CANNON.Vec3(0, 0, 1);
-            forward.rotate(busBody.quaternion);
+            const rotatedForward = new CANNON.Vec3();
+            busBody.quaternion.multiplyVector(forward, rotatedForward);
             const velocity = busBody.velocity;
-            currentSpeed = forward.dot(velocity);
+            currentSpeed = rotatedForward.dot(velocity);
 
             // Apply engine force in forward direction
             const force = new CANNON.Vec3(0, 0, 0);
             if (Math.abs(currentSpeed) < maxSpeed) {
-                force.x = forward.x * engineForce;
-                force.z = forward.z * engineForce;
+                force.x = rotatedForward.x * engineForce;
+                force.z = rotatedForward.z * engineForce;
             }
             busBody.applyForce(force, busBody.position);
 
