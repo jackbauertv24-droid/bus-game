@@ -467,8 +467,8 @@
 
             // Calculate current speed in local coordinates
             const forward = new CANNON.Vec3(0, 0, 1);
-            const rotatedForward = new CANNON.Vec3();
-            busBody.quaternion.multiplyVector(forward, rotatedForward);
+            const rotatedForward = forward.clone();
+            rotatedForward.applyQuaternion(busBody.quaternion);
             const velocity = busBody.velocity;
             currentSpeed = rotatedForward.dot(velocity);
 
