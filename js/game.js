@@ -556,6 +556,13 @@ function updateVehicle(delta) {
     const rotatedForward = busBody.quaternion.vmult(forward);
     const velocity = busBody.velocity;
     currentSpeed = rotatedForward.dot(velocity);
+    
+    // Apply steering rotation to bus body (only when moving)
+    if (Math.abs(currentSpeed) > 0.1) {
+        busBody.angularVelocity.y = currentSteering * currentSpeed * 0.3;
+    } else {
+        busBody.angularVelocity.y = 0;
+    }
 
     // Apply engine force in forward direction
     const force = new CANNON.Vec3(0, 0, 0);
