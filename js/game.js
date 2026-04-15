@@ -7,6 +7,7 @@ let clock;
 let keys = {};
 let cityBuildings = [];
 let groundMesh, groundBody;
+let chunkManager;
 let cameraAngle = 0;
 let cameraDistance = 25;
 let cameraHeight = 12;
@@ -28,7 +29,7 @@ function init() {
     // Create scene
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87CEEB);
-    scene.fog = new THREE.Fog(0x87CEEB, 100, 500);
+    scene.fog = new THREE.Fog(0x87CEEB, 50, 300);
 
     // Create camera
     camera = new THREE.PerspectiveCamera(
@@ -52,10 +53,9 @@ function init() {
     // Create lighting
     createLighting();
 
-    // Create environment
-    createGround();
-    createCity();
-
+    // Initialize chunk manager for infinite map
+    chunkManager = new ChunkManager(scene, 12345);
+    
     // Create bus
     createBus();
 
@@ -167,126 +167,8 @@ function createLighting() {
     scene.add(directionalLight);
 }
 
-// Create ground
-function createGround() {
-    // Three.js mesh
-    const groundGeometry = new THREE.PlaneGeometry(500, 500);
-    const groundMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0x3a7d44,
-        roughness: 0.8,
-        metalness: 0.2
-    });
-    groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
-    groundMesh.rotation.x = -Math.PI / 2;
-    groundMesh.receiveShadow = true;
-    scene.add(groundMesh);
-
-    // Physics body
-    const groundShape = new CANNON.Plane();
-    groundBody = new CANNON.Body({ mass: 0, material: world.groundMaterial });
-    groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
-    groundBody.collisionFilterGroup = 1;
-    groundBody.collisionFilterMask = -1;  // Collide with everything
-    world.addBody(groundBody);
-
-    // Add roads
-    createRoads();
-}
-
-// Create road network
-function createRoads() {
-    const roadMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0x444444,
-        roughness: 0.9 
-    });
-
-    // Main horizontal road
-    const roadHGeometry = new THREE.PlaneGeometry(500, 20);
-    const roadH = new THREE.Mesh(roadHGeometry, roadMaterial);
-    roadH.rotation.x = -Math.PI / 2;
-    roadH.position.set(0, 0.01, 0);
-    roadH.receiveShadow = true;
-    scene.add(roadH);
-
-    // Main vertical road
-    const roadVGeometry = new THREE.PlaneGeometry(20, 500);
-    const roadV = new THREE.Mesh(roadVGeometry, roadMaterial);
-    roadV.rotation.x = -Math.PI / 2;
-    roadV.position.set(0, 0.01, 0);
-    roadV.receiveShadow = true;
-    scene.add(roadV);
-
-    // Add road markings
-    const markingMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    
-    // Center markings on main roads
-    for (let i = -240; i < 240; i += 10) {
-        const markingH = new THREE.Mesh(
-            new THREE.PlaneGeometry(4, 1),
-            markingMaterial
-        );
-        markingH.rotation.x = -Math.PI / 2;
-        markingH.position.set(i, 0.02, 0);
-        scene.add(markingH);
-
-        const markingV = new THREE.Mesh(
-            new THREE.PlaneGeometry(1, 4),
-            markingMaterial
-        );
-        markingV.rotation.x = -Math.PI / 2;
-        markingV.position.set(0, 0.02, i);
-        scene.add(markingV);
-    }
-}
-
-// Create procedural city buildings
-function createCity() {
-    const buildingColors = [
-        0xcccccc, 0xaaaaaa, 0x999999, 0xb0b0b0, 0xd3d3d3
-    ];
-
-    // Grid layout for city blocks
-    const blockSize = 40;
-    const roadWidth = 20;
-    const citySize = 10;
-
-    for (let bx = -citySize; bx <= citySize; bx++) {
-        for (let bz = -citySize; bz <= citySize; bz++) {
-            // Skip areas where roads are
-            if (Math.abs(bx) < 1 || Math.abs(bz) < 1) continue;
-
-            const blockX = bx * (blockSize + roadWidth);
-            const blockZ = bz * (blockSize + roadWidth);
-
-            // Random number of buildings per block
-            const buildingsPerBlock = Math.floor(Math.random() * 4) + 2;
-
-            for (let i = 0; i < buildingsPerBlock; i++) {
-                const width = Math.random() * 15 + 10;
-                const depth = Math.random() * 15 + 10;
-                const height = Math.random() * 40 + 10;
-
-                const posX = blockX + (Math.random() - 0.5) * (blockSize - width);
-                const posZ = blockZ + (Math.random() - 0.5) * (blockSize - depth);
-
-                const geometry = new THREE.BoxGeometry(width, height, depth);
-                const color = buildingColors[Math.floor(Math.random() * buildingColors.length)];
-                const material = new THREE.MeshStandardMaterial({ 
-                    color: color,
-                    roughness: 0.7 
-                });
-                const building = new THREE.Mesh(geometry, material);
-                building.position.set(posX, height / 2, posZ);
-                building.castShadow = true;
-                building.receiveShadow = true;
-                scene.add(building);
-
-                cityBuildings.push(building);
-            }
-        }
-    }
-}
+// Ground, roads, and city are now managed by ChunkManager
+// See js/chunkManager.js for infinite map implementation
 
 // Create the bus with physics - realistic city bus
 function createBus() {
@@ -693,6 +575,11 @@ function animate() {
 
     // Update vehicle based on input
     updateVehicle(delta);
+
+    // Update chunks based on bus position
+    if (chunkManager && busBody) {
+        chunkManager.update(busBody.position.x, busBody.position.z);
+    }
 
     // Update camera to follow bus
     updateCamera();
