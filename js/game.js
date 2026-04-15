@@ -421,8 +421,9 @@ function createBus() {
     roof.castShadow = true;
     busMesh.add(roof);
 
-    // Position the entire bus
+    // Position the entire bus - rotate so front faces +z (away from camera)
     busMesh.position.y = 0;
+    busMesh.rotation.y = Math.PI;  // Rotate 180° so front faces forward
     scene.add(busMesh);
 
     // Physics body for bus - still use box for simplicity
