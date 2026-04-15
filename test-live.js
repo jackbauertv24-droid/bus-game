@@ -14,12 +14,25 @@ const process = spawn('chromium', [
 let errors = [];
 
 process.stderr.on('data', (data) => {
-  const output = data.toString();
-  // Check for JavaScript errors
-  if (output.includes('ERROR') || output.includes('CANNON') || output.includes('not defined')) {
-    errors.push(output);
-    console.log('📢 Found potential error:', output);
-  }
+  const lines = data.toString().split('\n');
+  lines.forEach(line => {
+    if (!line.trim()) return;
+    
+    // Filter out all harmless DBus connection errors from Chromium
+    if (line.includes('dbus') || 
+        line.includes('Failed to connect to the bus') || 
+        line.includes('Unknown address type') ||
+        line.includes('org.freedesktop.DBus.NameHasOwner')) {
+      // Ignore these - they're just Chromium startup warnings on headless server
+      return;
+    }
+    
+    // Check for actual JavaScript errors
+    if (line.includes('ERROR') || line.includes('CANNON is not defined') || line.includes('Uncaught')) {
+      errors.push(line);
+      console.log('📢 Found potential error:', line);
+    }
+  });
 });
 
 process.on('close', (code) => {

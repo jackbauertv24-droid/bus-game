@@ -12,16 +12,18 @@ function testCDN(url) {
   });
 }
 
-async function tryCDN(url, name) {
+ async function tryCDN(url, name) {
   console.log(`\nTesting ${name}: ${url}`);
   try {
-    // Clear any existing CANNON
-    global.CANNON = undefined;
-    
+    // Load into isolated context with window
     const code = await testCDN(url);
     console.log(`Loaded: ${code.length} bytes`);
-    eval(code);
     
+    const context = { window: {} };
+    const script = `var window = this; ${code}`;
+    (new Function(script)).call(context);
+    
+    const CANNON = context.window.CANNON;
     if (typeof CANNON !== 'undefined') {
       console.log(`✅ SUCCESS: CANNON is defined! Version: ${CANNON.VERSION}`);
       return true;

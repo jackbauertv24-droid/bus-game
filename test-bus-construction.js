@@ -1,8 +1,9 @@
 // Unit test for bus construction and initialization
 const { JSDOM } = require('jsdom');
 
-// Setup DOM environment
-const dom = new JSDOM('<!DOCTYPE html><div id="ui"><div id="speed"></div><button id="resetBtn"></button></div>', {
+// Setup DOM environment with onload already set to null
+const htmlContent = '<!DOCTYPE html><div id="ui"><div id="speed"></div><button id="resetBtn"></button></div>';
+const dom = new JSDOM(htmlContent, {
     runScripts: "dangerously",
     resources: "usable"
 });
@@ -10,45 +11,111 @@ const dom = new JSDOM('<!DOCTYPE html><div id="ui"><div id="speed"></div><button
 // Expose globals like in browser
 global.window = dom.window;
 global.document = dom.window.document;
-global.THREE = require('three');
+// Clear onload to prevent auto-init
+delete dom.window.onload;
+
+// Create mock THREE with all required constructors
+global.THREE = {
+    Scene: function() {
+        this.background = null;
+        this.fog = null;
+        this.add = mockFn;
+    },
+    PerspectiveCamera: function() {},
+    WebGLRenderer: function() {
+        this.setSize = mockFn;
+        this.shadowMap = { enabled: false, type: 0 };
+    },
+    AmbientLight: function() {},
+    DirectionalLight: function() {
+        this.position = { set: mockFn };
+        this.castShadow = true;
+        this.shadow = { 
+            mapSize: { width: 0, height: 0 },
+            camera: { left: 0, right: 0, top: 0, bottom: 0 }
+        };
+        this.add = mockFn;
+    },
+    PlaneGeometry: function() {},
+    MeshStandardMaterial: function() {},
+    Mesh: function() {
+        this.position = { set: mockFn };
+        this.rotation = { x: 0 };
+        this.receiveShadow = false;
+        this.castShadow = false;
+        this.add = mockFn;
+        if (typeof scene !== 'undefined') {
+            scene.add(this);
+        }
+    },
+    Fog: function() {},
+    BoxGeometry: function() {},
+    CylinderGeometry: function() {},
+    Group: function() {
+        this.position = { copy: mockFn };
+        this.quaternion = { copy: mockFn };
+        this.add = mockFn;
+    }
+};
 // CANNON is loaded from CDN, so we need to mock it minimally
+const mockFn = () => {};
 global.CANNON = {
-    World: jest.fn(() => ({
-        gravity: { set: jest.fn() },
-        broadphase: null,
-        step: jest.fn(),
-        addBody: jest.fn(),
-        addConstraint: jest.fn()
-    })),
-    Vec3: jest.fn(function(x, y, z) {
+    World: function() {
+        this.gravity = { set: mockFn };
+        this.broadphase = null;
+        this.step = mockFn;
+        this.addBody = mockFn;
+        this.addConstraint = mockFn;
+    },
+    Vec3: function(x, y, z) {
         this.x = x;
         this.y = y;
         this.z = z;
-        this.mult = jest.fn((input, output) => {
+        this.mult = (input, output) => {
             output.x = input.x;
             output.y = input.y;
             output.z = input.z;
             return output;
-        });
-        this.dot = jest.fn(() => 0);
-    }),
-    Body: jest.fn(() => ({
-        position: { set: jest.fn() },
-        velocity: { x: 0, z: 0 },
-        angularVelocity: { set: jest.fn() },
-        quaternion: { 
-            set: jest.fn(),
-            mult: jest.fn() 
-        },
-        addShape: jest.fn(),
-        applyForce: jest.fn()
-    })),
-    Plane: jest.fn(),
-    Box: jest.fn(),
-    Sphere: jest.fn(),
-    NaiveBroadphase: jest.fn(),
-    PointToPointConstraint: jest.fn(),
-    Quaternion: jest.fn()
+        };
+        this.dot = () => 0;
+    },
+    Body: function() {
+        this.position = { set: mockFn };
+        this.velocity = { x: 0, z: 0 };
+        this.angularVelocity = { set: mockFn };
+        this.quaternion = { 
+            set: mockFn,
+            mult: mockFn 
+        };
+        this.addShape = mockFn;
+        this.applyForce = mockFn;
+    },
+    Plane: mockFn,
+    Box: mockFn,
+    Sphere: mockFn,
+    NaiveBroadphase: mockFn,
+    PointToPointConstraint: mockFn,
+    Quaternion: mockFn
+};
+
+global.THREE.Scene = mockFn;
+global.THREE.PerspectiveCamera = mockFn;
+global.THREE.WebGLRenderer = () => ({
+    setSize: mockFn,
+    shadowMap: { enabled: false, type: 0 }
+});
+global.THREE.AmbientLight = mockFn;
+global.THREE.DirectionalLight = mockFn;
+global.THREE.PlaneGeometry = mockFn;
+global.THREE.MeshStandardMaterial = mockFn;
+global.THREE.Mesh = mockFn;
+global.THREE.Fog = mockFn;
+global.THREE.BoxGeometry = mockFn;
+global.THREE.CylinderGeometry = mockFn;
+global.THREE.Group = function() {
+    this.position = { copy: mockFn };
+    this.quaternion = { copy: mockFn };
+    this.add = mockFn;
 };
 
 // Import the game after setup
@@ -68,26 +135,7 @@ test('Exports expected functions', () => {
 
 // Test 2: Initialize and check bus creation doesn't throw errors
 test('Bus creation succeeds without scope errors', () => {
-    // Mock what's needed for init
-    global.THREE.Scene = jest.fn();
-    global.THREE.PerspectiveCamera = jest.fn();
-    global.THREE.WebGLRenderer = jest.fn(() => ({
-        setSize: jest.fn(),
-        shadowMap: { enabled: false, type: 0 }
-    }));
-    global.THREE.AmbientLight = jest.fn();
-    global.THREE.DirectionalLight = jest.fn();
-    global.THREE.PlaneGeometry = jest.fn();
-    global.THREE.MeshStandardMaterial = jest.fn();
-    global.THREE.Mesh = jest.fn();
-    global.THREE.Fog = jest.fn();
-    global.THREE.BoxGeometry = jest.fn();
-    global.THREE.CylinderGeometry = jest.fn();
-    global.THREE.Group = jest.fn(() => ({
-        position: { copy: jest.fn() },
-        quaternion: { copy: jest.fn() },
-        add: jest.fn()
-    }));
+     // Already mocked above
 
     // This should not throw "Cannot access wheelRadius before initialization"
     expect(() => {
