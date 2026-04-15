@@ -499,8 +499,7 @@ function updateVehicle(delta) {
 
     // Calculate current speed in local coordinates
     const forward = new CANNON.Vec3(0, 0, 1);
-    const rotatedForward = new CANNON.Vec3();
-    busBody.quaternion.mult(forward, rotatedForward);
+    const rotatedForward = busBody.quaternion.vmult(forward);
     const velocity = busBody.velocity;
     currentSpeed = rotatedForward.dot(velocity);
 
