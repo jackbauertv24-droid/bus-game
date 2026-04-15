@@ -7,6 +7,11 @@ let clock;
 let keys = {};
 let cityBuildings = [];
 let groundMesh, groundBody;
+let cameraAngle = 0;
+let cameraDistance = 25;
+let cameraHeight = 12;
+let isDragging = false;
+let lastMouseX = 0;
 
 // Bus parameters
 const maxSpeed = 80;
@@ -94,6 +99,29 @@ function init() {
     btnImpulse.addEventListener('click', () => {
         console.log('Applying impulse!');
         busBody.applyImpulse(new CANNON.Vec3(0, 0, 5000), busBody.position);
+    });
+
+    // Camera controls - drag to rotate, scroll to zoom
+    renderer.domElement.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        lastMouseX = e.clientX;
+    });
+    
+    window.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+    
+    window.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            const deltaX = e.clientX - lastMouseX;
+            cameraAngle += deltaX * 0.01;
+            lastMouseX = e.clientX;
+        }
+    });
+    
+    renderer.domElement.addEventListener('wheel', (e) => {
+        cameraDistance += e.deltaY * 0.05;
+        cameraDistance = Math.max(10, Math.min(50, cameraDistance));
     });
 
     // Start animation loop
@@ -613,32 +641,23 @@ function resetBus() {
 
 // Update camera to follow bus
 function updateCamera() {
-    // Camera controls with I/J/K/L keys
-    // I/K: move camera forward/backward
-    // J/L: rotate camera around bus
-    // U/O: move camera up/down
-    
     const busPosition = new THREE.Vector3(
         busBody.position.x,
         busBody.position.y,
         busBody.position.z
     );
 
-    // Default camera offset: behind and above bus
-    // Camera should be at -z side (behind taillights) looking toward +z
-    const offset = new THREE.Vector3(0, 8, -20);  // -20 means behind the bus (at -z side)
-    
-    // Apply bus rotation to offset
-    const busQuaternion = new THREE.Quaternion(
-        busBody.quaternion.x,
-        busBody.quaternion.y,
-        busBody.quaternion.z,
-        busBody.quaternion.w
-    );
-    offset.applyQuaternion(busQuaternion);
+    // Camera position based on angle and distance
+    // Angle 0 = behind bus, Angle PI/2 = right side, Angle PI = front, etc.
+    const camX = Math.sin(cameraAngle) * cameraDistance;
+    const camZ = Math.cos(cameraAngle) * cameraDistance;
 
     // Target camera position
-    const targetCameraPos = busPosition.clone().add(offset);
+    const targetCameraPos = new THREE.Vector3(
+        busPosition.x + camX,
+        busPosition.y + cameraHeight,
+        busPosition.z - camZ  // Negative because default (angle=0) should be behind
+    );
     
     // Smoothly move camera
     camera.position.lerp(targetCameraPos, 0.1);
