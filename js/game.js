@@ -148,6 +148,15 @@ function initPhysics() {
     // Store materials for later use
     world.groundMaterial = groundMaterial;
     world.busMaterial = busMaterial;
+    
+    // Create infinite physics ground (visual ground handled by ChunkManager)
+    const groundShape = new CANNON.Plane();
+    groundBody = new CANNON.Body({ mass: 0, material: world.groundMaterial });
+    groundBody.addShape(groundShape);
+    groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+    groundBody.collisionFilterGroup = 1;
+    groundBody.collisionFilterMask = -1;
+    world.addBody(groundBody);
 }
 
 // Create lighting
@@ -345,9 +354,9 @@ function createBus() {
         shape: busShape,
         material: world.busMaterial
     });
-    // Bus doesn't collide with ground (ground is group 1) - only other objects
+    // Bus collides with ground (group 1), other buses (group 2), and buildings (group 4)
     busBody.collisionFilterGroup = 2;
-    busBody.collisionFilterMask = 2 | 4;  // Collide with other buses and buildings, not ground
+    busBody.collisionFilterMask = 1 | 2 | 4;  // Collide with ground, buses, and buildings
     world.addBody(busBody);
 
     // Create wheels
