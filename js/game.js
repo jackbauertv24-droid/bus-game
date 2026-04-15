@@ -294,18 +294,18 @@ function createBus() {
     body.castShadow = true;
     busMesh.add(body);
 
-    // ===== FRONT END (FLAT, WITH WINDSHIELD) =====
+    // ===== FRONT END (FLAT, WITH WINDSHIELD) at +z =====
     // Front panel (black bumper area)
     const frontBumperGeometry = new THREE.BoxGeometry(busWidth, 0.6, 0.2);
     const frontBumper = new THREE.Mesh(frontBumperGeometry, blackMaterial);
-    frontBumper.position.set(0, wheelRadius + 0.3, -busLength / 2 - 0.1);
+    frontBumper.position.set(0, wheelRadius + 0.3, busLength / 2 + 0.1);
     frontBumper.castShadow = true;
     busMesh.add(frontBumper);
 
     // Front hood (sloped)
     const hoodGeometry = new THREE.BoxGeometry(busWidth * 0.9, 0.3, 1.5);
     const hood = new THREE.Mesh(hoodGeometry, bodyMaterial);
-    hood.position.set(0, wheelRadius + 0.6, -busLength / 2 + 0.5);
+    hood.position.set(0, wheelRadius + 0.6, busLength / 2 - 0.5);
     hood.castShadow = true;
     busMesh.add(hood);
 
@@ -319,7 +319,7 @@ function createBus() {
 
     const windshieldGeometry = new THREE.BoxGeometry(busWidth - 0.3, 1.8, 0.1);
     const windshield = new THREE.Mesh(windshieldGeometry, windowMaterial);
-    windshield.position.set(0, busHeight + wheelRadius - 0.5, -busLength / 2 + 1.2);
+    windshield.position.set(0, busHeight + wheelRadius - 0.5, busLength / 2 - 1.2);
     busMesh.add(windshield);
 
     // ===== DESTINATION SIGN (FRONT TOP) =====
@@ -329,10 +329,10 @@ function createBus() {
         emissive: 0x444444
     });
     const destSign = new THREE.Mesh(signGeometry, signMaterial);
-    destSign.position.set(0, busHeight + wheelRadius + 0.3, -busLength / 2 + 1.0);
+    destSign.position.set(0, busHeight + wheelRadius + 0.3, busLength / 2 - 1.0);
     busMesh.add(destSign);
 
-    // ===== HEADLIGHTS (FRONT) =====
+    // ===== HEADLIGHTS (FRONT at +z) =====
     const headlightGeometry = new THREE.CylinderGeometry(0.25, 0.25, 0.2, 12);
     const headlightMaterial = new THREE.MeshStandardMaterial({ 
         color: 0xFFFFEE,
@@ -342,22 +342,22 @@ function createBus() {
 
     const leftHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
     leftHeadlight.rotation.x = Math.PI / 2;
-    leftHeadlight.position.set(-0.9, wheelRadius + 1.2, -busLength / 2 - 0.1);
+    leftHeadlight.position.set(-0.9, wheelRadius + 1.2, busLength / 2 + 0.1);
     busMesh.add(leftHeadlight);
 
     const rightHeadlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
     rightHeadlight.rotation.x = Math.PI / 2;
-    rightHeadlight.position.set(0.9, wheelRadius + 1.2, -busLength / 2 - 0.1);
+    rightHeadlight.position.set(0.9, wheelRadius + 1.2, busLength / 2 + 0.1);
     busMesh.add(rightHeadlight);
 
-    // ===== REAR END (FLAT) =====
+    // ===== REAR END (FLAT at -z) =====
     const rearBumperGeometry = new THREE.BoxGeometry(busWidth, 0.5, 0.2);
     const rearBumper = new THREE.Mesh(rearBumperGeometry, blackMaterial);
-    rearBumper.position.set(0, wheelRadius + 0.25, busLength / 2 + 0.1);
+    rearBumper.position.set(0, wheelRadius + 0.25, -busLength / 2 - 0.1);
     rearBumper.castShadow = true;
     busMesh.add(rearBumper);
 
-    // ===== TAILLIGHTS (REAR) - RED =====
+    // ===== TAILLIGHTS (REAR at -z) - RED =====
     const taillightMaterial = new THREE.MeshStandardMaterial({ 
         color: 0xFF0000,
         emissive: 0x440000,
@@ -366,12 +366,12 @@ function createBus() {
 
     const leftTaillight = new THREE.Mesh(headlightGeometry, taillightMaterial);
     leftTaillight.rotation.x = Math.PI / 2;
-    leftTaillight.position.set(-0.9, wheelRadius + 1.5, busLength / 2 + 0.1);
+    leftTaillight.position.set(-0.9, wheelRadius + 1.5, -busLength / 2 - 0.1);
     busMesh.add(leftTaillight);
 
     const rightTaillight = new THREE.Mesh(headlightGeometry, taillightMaterial);
     rightTaillight.rotation.x = Math.PI / 2;
-    rightTaillight.position.set(0.9, wheelRadius + 1.5, busLength / 2 + 0.1);
+    rightTaillight.position.set(0.9, wheelRadius + 1.5, -busLength / 2 - 0.1);
     busMesh.add(rightTaillight);
 
     // ===== SIDE WINDOWS =====
@@ -407,11 +407,11 @@ function createBus() {
     });
 
     const leftMirror = new THREE.Mesh(mirrorGeometry, mirrorMaterial);
-    leftMirror.position.set(-busWidth / 2 - 0.4, busHeight + wheelRadius - 0.3, -busLength / 2 + 1.5);
+    leftMirror.position.set(-busWidth / 2 - 0.4, busHeight + wheelRadius - 0.3, busLength / 2 - 1.5);
     busMesh.add(leftMirror);
 
     const rightMirror = new THREE.Mesh(mirrorGeometry, mirrorMaterial);
-    rightMirror.position.set(busWidth / 2 + 0.4, busHeight + wheelRadius - 0.3, -busLength / 2 + 1.5);
+    rightMirror.position.set(busWidth / 2 + 0.4, busHeight + wheelRadius - 0.3, busLength / 2 - 1.5);
     busMesh.add(rightMirror);
 
     // ===== ROOF (SLIGHTLY RAISED) =====
@@ -421,9 +421,8 @@ function createBus() {
     roof.castShadow = true;
     busMesh.add(roof);
 
-    // Position the entire bus - rotate so front faces +z (away from camera)
+    // Position the entire bus
     busMesh.position.y = 0;
-    busMesh.rotation.y = Math.PI;  // Rotate 180° so front faces forward
     scene.add(busMesh);
 
     // Physics body for bus - still use box for simplicity
