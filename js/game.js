@@ -613,15 +613,22 @@ function resetBus() {
 
 // Update camera to follow bus
 function updateCamera() {
-    // Get bus position and direction
+    // Camera controls with I/J/K/L keys
+    // I/K: move camera forward/backward
+    // J/L: rotate camera around bus
+    // U/O: move camera up/down
+    
     const busPosition = new THREE.Vector3(
         busBody.position.x,
         busBody.position.y,
         busBody.position.z
     );
 
-    // Calculate desired camera position (behind and above bus)
-    const offset = new THREE.Vector3(0, 8, 15);
+    // Default camera offset: behind and above bus
+    // Camera should be at -z side (behind taillights) looking toward +z
+    const offset = new THREE.Vector3(0, 8, -20);  // -20 means behind the bus (at -z side)
+    
+    // Apply bus rotation to offset
     const busQuaternion = new THREE.Quaternion(
         busBody.quaternion.x,
         busBody.quaternion.y,
@@ -630,10 +637,12 @@ function updateCamera() {
     );
     offset.applyQuaternion(busQuaternion);
 
-    // Smoothly move camera to target position
+    // Target camera position
     const targetCameraPos = busPosition.clone().add(offset);
+    
+    // Smoothly move camera
     camera.position.lerp(targetCameraPos, 0.1);
-
+    
     // Look at bus
     camera.lookAt(busPosition);
 }
