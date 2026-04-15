@@ -89,6 +89,13 @@ function init() {
     btnRight.addEventListener('touchstart', () => { keys['ArrowRight'] = true; });
     btnRight.addEventListener('touchend', () => { keys['ArrowRight'] = false; });
 
+    // Test impulse button - applies direct impulse to verify physics works
+    const btnImpulse = document.getElementById('btnImpulse');
+    btnImpulse.addEventListener('click', () => {
+        console.log('Applying impulse!');
+        busBody.applyImpulse(new CANNON.Vec3(0, 0, 5000), busBody.position);
+    });
+
     // Start animation loop
     animate();
 }
@@ -551,11 +558,12 @@ function updateVehicle(delta) {
     if (positionStatus) positionStatus.textContent = 'Pos: ' + busBody.position.x.toFixed(1) + ', ' + busBody.position.y.toFixed(1) + ', ' + busBody.position.z.toFixed(1);
 
     // Apply damping/friction
-    busBody.velocity.x *= friction - Math.abs(currentSteering) * 0.1;
-    busBody.velocity.z *= friction;
+    busBody.velocity.x *= 0.99;
+    busBody.velocity.y *= 0.99;
+    busBody.velocity.z *= 0.99;
 
-    // Apply downforce to keep bus on ground
-    busBody.applyForce(new CANNON.Vec3(0, -20000, 0), busBody.position);
+    // Apply downforce to keep bus on ground (reduced)
+    busBody.applyForce(new CANNON.Vec3(0, -500, 0), busBody.position);
 
     // Reset with R key
     if (keys['KeyR']) {
