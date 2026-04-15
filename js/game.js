@@ -578,7 +578,11 @@ function updateVehicle(delta) {
     const velocityStatus = document.getElementById('velocityStatus');
     const positionStatus = document.getElementById('positionStatus');
     if (keyStatus) {
-        const activeKey = keys['ArrowUp'] ? 'UP' : keys['ArrowDown'] ? 'DOWN' : keys['ArrowLeft'] ? 'LEFT' : keys['ArrowRight'] ? 'RIGHT' : 'none';
+        let activeKey = 'none';
+        if (keys['ArrowUp'] || keys['KeyW']) activeKey = 'UP';
+        else if (keys['ArrowDown'] || keys['KeyS']) activeKey = 'DOWN';
+        else if (keys['ArrowLeft'] || keys['KeyA']) activeKey = 'LEFT';
+        else if (keys['ArrowRight'] || keys['KeyD']) activeKey = 'RIGHT';
         keyStatus.textContent = 'Key: ' + activeKey;
     }
     if (forceStatus) forceStatus.textContent = 'Force: ' + force.x.toFixed(1) + ', ' + force.y.toFixed(1) + ', ' + force.z.toFixed(1);
