@@ -14,7 +14,7 @@ const groundMaterial = new CANNON.Material('ground');
 const busMaterial = new CANNON.Material('bus');
 
 const busGroundContact = new CANNON.ContactMaterial(busMaterial, groundMaterial, {
-    friction: 0.01,
+    friction: 0.0,
     restitution: 0.1
 });
 world.addContactMaterial(busGroundContact);
@@ -84,9 +84,9 @@ console.log('');
 
 // Test 4: Low friction verification
 console.log('=== Test 4: Low friction contact material ===');
-console.log('Contact material friction:', busGroundContact.friction, '(expected: 0.01)');
+console.log('Contact material friction:', busGroundContact.friction, '(expected: 0)');
 console.log('Contact material restitution:', busGroundContact.restitution, '(expected: 0.1)');
-const frictionCorrect = busGroundContact.friction === 0.01;
+const frictionCorrect = busGroundContact.friction === 0;
 const restitutionCorrect = busGroundContact.restitution === 0.1;
 console.log('Friction correct:', frictionCorrect ? '✅ PASS' : '❌ FAIL');
 console.log('Restitution correct:', restitutionCorrect ? '✅ PASS' : '❌ FAIL');

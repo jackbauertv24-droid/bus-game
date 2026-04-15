@@ -140,7 +140,7 @@ function initPhysics() {
     
     // Contact material: very low friction so bus can slide
     const busGroundContact = new CANNON.ContactMaterial(busMaterial, groundMaterial, {
-        friction: 0.01,
+        friction: 0.0,
         restitution: 0.1
     });
     world.addContactMaterial(busGroundContact);
