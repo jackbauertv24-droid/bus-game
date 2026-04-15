@@ -63,6 +63,32 @@ function init() {
     document.getElementById('resetBtn').addEventListener('click', resetBus);
     window.addEventListener('resize', onWindowResize);
 
+    // On-screen button controls
+    const btnUp = document.getElementById('btnUp');
+    const btnDown = document.getElementById('btnDown');
+    const btnLeft = document.getElementById('btnLeft');
+    const btnRight = document.getElementById('btnRight');
+
+    btnUp.addEventListener('mousedown', () => { keys['ArrowUp'] = true; });
+    btnUp.addEventListener('mouseup', () => { keys['ArrowUp'] = false; });
+    btnUp.addEventListener('touchstart', () => { keys['ArrowUp'] = true; });
+    btnUp.addEventListener('touchend', () => { keys['ArrowUp'] = false; });
+
+    btnDown.addEventListener('mousedown', () => { keys['ArrowDown'] = true; });
+    btnDown.addEventListener('mouseup', () => { keys['ArrowDown'] = false; });
+    btnDown.addEventListener('touchstart', () => { keys['ArrowDown'] = true; });
+    btnDown.addEventListener('touchend', () => { keys['ArrowDown'] = false; });
+
+    btnLeft.addEventListener('mousedown', () => { keys['ArrowLeft'] = true; });
+    btnLeft.addEventListener('mouseup', () => { keys['ArrowLeft'] = false; });
+    btnLeft.addEventListener('touchstart', () => { keys['ArrowLeft'] = true; });
+    btnLeft.addEventListener('touchend', () => { keys['ArrowLeft'] = false; });
+
+    btnRight.addEventListener('mousedown', () => { keys['ArrowRight'] = true; });
+    btnRight.addEventListener('mouseup', () => { keys['ArrowRight'] = false; });
+    btnRight.addEventListener('touchstart', () => { keys['ArrowRight'] = true; });
+    btnRight.addEventListener('touchend', () => { keys['ArrowRight'] = false; });
+
     // Start animation loop
     animate();
 }
@@ -510,6 +536,19 @@ function updateVehicle(delta) {
         force.z = rotatedForward.z * engineForce;
     }
     busBody.applyForce(force, busBody.position);
+
+    // Debug output
+    const keyStatus = document.getElementById('keyStatus');
+    const forceStatus = document.getElementById('forceStatus');
+    const velocityStatus = document.getElementById('velocityStatus');
+    const positionStatus = document.getElementById('positionStatus');
+    if (keyStatus) {
+        const activeKey = keys['ArrowUp'] ? 'UP' : keys['ArrowDown'] ? 'DOWN' : keys['ArrowLeft'] ? 'LEFT' : keys['ArrowRight'] ? 'RIGHT' : 'none';
+        keyStatus.textContent = 'Key: ' + activeKey;
+    }
+    if (forceStatus) forceStatus.textContent = 'Force: ' + force.x.toFixed(1) + ', ' + force.y.toFixed(1) + ', ' + force.z.toFixed(1);
+    if (velocityStatus) velocityStatus.textContent = 'Vel: ' + velocity.x.toFixed(2) + ', ' + velocity.y.toFixed(2) + ', ' + velocity.z.toFixed(2);
+    if (positionStatus) positionStatus.textContent = 'Pos: ' + busBody.position.x.toFixed(1) + ', ' + busBody.position.y.toFixed(1) + ', ' + busBody.position.z.toFixed(1);
 
     // Apply damping/friction
     busBody.velocity.x *= friction - Math.abs(currentSteering) * 0.1;
