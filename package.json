@@ -1,0 +1,25 @@
+{
+  "name": "bus-game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "detect-method.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jackbauertv24-droid/bus-game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jackbauertv24-droid/bus-game/issues"
+  },
+  "homepage": "https://github.com/jackbauertv24-droid/bus-game#readme",
+  "devDependencies": {
+    "jest": "^30.3.0",
+    "jsdom": "^29.0.2",
+    "three": "^0.183.2"
+  }
+}
