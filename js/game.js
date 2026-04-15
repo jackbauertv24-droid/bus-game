@@ -105,6 +105,21 @@ function initPhysics() {
     world = new CANNON.World();
     world.gravity.set(0, -9.82, 0);
     world.broadphase = new CANNON.NaiveBroadphase();
+    
+    // Create materials for ground and bus with low friction
+    const groundMaterial = new CANNON.Material('ground');
+    const busMaterial = new CANNON.Material('bus');
+    
+    // Contact material: very low friction so bus can slide
+    const busGroundContact = new CANNON.ContactMaterial(busMaterial, groundMaterial, {
+        friction: 0.01,
+        restitution: 0.1
+    });
+    world.addContactMaterial(busGroundContact);
+    
+    // Store materials for later use
+    world.groundMaterial = groundMaterial;
+    world.busMaterial = busMaterial;
 }
 
 // Create lighting
@@ -140,9 +155,11 @@ function createGround() {
 
     // Physics body
     const groundShape = new CANNON.Plane();
-    groundBody = new CANNON.Body({ mass: 0 });
+    groundBody = new CANNON.Body({ mass: 0, material: world.groundMaterial });
     groundBody.addShape(groundShape);
     groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+    groundBody.collisionFilterGroup = 1;
+    groundBody.collisionFilterMask = -1;  // Collide with everything
     world.addBody(groundBody);
 
     // Add roads
@@ -426,8 +443,12 @@ function createBus() {
     busBody = new CANNON.Body({
         mass: 1500, // Heavier for more realistic physics
         position: new CANNON.Vec3(0, busHeight / 2 + wheelRadius, 30),
-        shape: busShape
+        shape: busShape,
+        material: world.busMaterial
     });
+    // Bus doesn't collide with ground (ground is group 1) - only other objects
+    busBody.collisionFilterGroup = 2;
+    busBody.collisionFilterMask = 2 | 4;  // Collide with other buses and buildings, not ground
     world.addBody(busBody);
 
     // Create wheels
